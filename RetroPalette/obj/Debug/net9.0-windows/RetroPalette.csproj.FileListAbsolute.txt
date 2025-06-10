@@ -7,6 +7,7 @@ D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.GeneratedMSBu
 D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.AssemblyInfoInputs.cache
 D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.AssemblyInfo.cs
 D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.csproj.CoreCompileInputs.cache
+D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.sourcelink.json
 D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.dll
 D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\refint\RetroPalette.dll
 D:\RetroPalette\RetroPalette\obj\Debug\net9.0-windows\RetroPalette.pdb

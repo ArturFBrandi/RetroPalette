@@ -1,5 +1,7 @@
 using System;
 using System.Drawing;
+using System.Drawing.Drawing2D;
+using System.Drawing.Imaging;
 using System.Windows.Forms;
 
 namespace RetroPalette
@@ -24,6 +26,87 @@ namespace RetroPalette
             // Enable double buffering for smooth rendering
             this.DoubleBuffered = true;
             this.ResizeRedraw = true;
+        }
+
+        public bool HasContent()
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                for (int y = 0; y < gridHeight; y++)
+                {
+                    if (pixels[x, y] != Color.Empty)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public void Clear()
+        {
+            for (int x = 0; x < gridWidth; x++)
+            {
+                for (int y = 0; y < gridHeight; y++)
+                {
+                    pixels[x, y] = Color.Empty;
+                }
+            }
+            Invalidate();
+        }
+
+        public void LoadImage(string filePath)
+        {
+            using (Bitmap bmp = new Bitmap(filePath))
+            {
+                // Resize image to fit our grid
+                using (Bitmap resized = new Bitmap(gridWidth, gridHeight))
+                {
+                    using (Graphics g = Graphics.FromImage(resized))
+                    {
+                        g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                        g.DrawImage(bmp, 0, 0, gridWidth, gridHeight);
+                    }
+
+                    // Copy pixels to our grid
+                    for (int x = 0; x < gridWidth; x++)
+                    {
+                        for (int y = 0; y < gridHeight; y++)
+                        {
+                            Color pixel = resized.GetPixel(x, y);
+                            pixels[x, y] = pixel.A == 0 ? Color.Empty : pixel;
+                        }
+                    }
+                }
+            }
+            Invalidate();
+        }
+
+        public void ExportImage(string filePath, int scale)
+        {
+            using (Bitmap bmp = new Bitmap(gridWidth * scale, gridHeight * scale))
+            {
+                using (Graphics g = Graphics.FromImage(bmp))
+                {
+                    g.InterpolationMode = InterpolationMode.NearestNeighbor;
+                    
+                    // Draw pixels
+                    for (int x = 0; x < gridWidth; x++)
+                    {
+                        for (int y = 0; y < gridHeight; y++)
+                        {
+                            if (pixels[x, y] != Color.Empty)
+                            {
+                                using (SolidBrush brush = new SolidBrush(pixels[x, y]))
+                                {
+                                    g.FillRectangle(brush, x * scale, y * scale, scale, scale);
+                                }
+                            }
+                        }
+                    }
+                }
+                bmp.Save(filePath, ImageFormat.Png);
+            }
         }
 
         protected override void OnPaint(PaintEventArgs e)
