@@ -9,23 +9,33 @@ using System.Linq;
 
 namespace RetroPalette
 {
+    /// <summary>
+    /// A custom control that provides a pixel-based canvas for pixel art creation and editing.
+    /// Supports features like zooming, panning, pixel manipulation, selection, and undo/redo functionality.
+    /// </summary>
     public class PixelCanvas : Control
     {
+        // Canvas dimensions and pixel data
         private int gridWidth;
         private int gridHeight;
         private Color[,] pixels;
+        
+        // View state
         private Point viewOffset = new Point(0, 0);
         private float zoom = 1.0f;
         private Point lastMousePosition;
         private Point lastZoomCenter;
+
+        // Undo/Redo system
         private Stack<IUndoAction> undoStack = new Stack<IUndoAction>();
         private List<SinglePixelUndoAction> currentGroupedAction = null;
         private const int MAX_UNDO = 9999;
         
+        // Checkerboard pattern colors for transparency visualization
         private static readonly Color CHECKER_COLOR_1 = ColorTranslator.FromHtml("#dfdfdf");
         private static readonly Color CHECKER_COLOR_2 = ColorTranslator.FromHtml("#9a9a9a");
 
-        // Marquee selection properties
+        // Selection system
         private Point? selectionStart = null;
         private Point? selectionEnd = null;
         private Rectangle? selectionRect = null;
@@ -34,15 +44,22 @@ namespace RetroPalette
         private bool isDraggingSelection = false;
         private Dictionary<Point, Color> clipboardPixels = null;
 
+        // Public properties for selection and clipboard state
         public bool HasSelection => selectionRect.HasValue;
         public bool IsDraggingSelection => isDraggingSelection;
         public bool HasClipboardContent => clipboardPixels != null && clipboardPixels.Count > 0;
 
+        /// <summary>
+        /// Interface for undoable actions in the canvas
+        /// </summary>
         private interface IUndoAction
         {
             void Undo(Color[,] pixels);
         }
 
+        /// <summary>
+        /// Represents a single pixel change that can be undone
+        /// </summary>
         private class SinglePixelUndoAction : IUndoAction
         {
             public Point Position { get; set; }
@@ -62,6 +79,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Represents a group of pixel changes that should be undone together
+        /// </summary>
         private class GroupedUndoAction : IUndoAction
         {
             private readonly List<SinglePixelUndoAction> actions;
@@ -80,6 +100,7 @@ namespace RetroPalette
             }
         }
 
+        // Zoom level constraints
         [Browsable(true)]
         [Category("Behavior")]
         [Description("Gets or sets the minimum zoom level")]
@@ -92,11 +113,14 @@ namespace RetroPalette
         [DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
         public float MaxZoom { get; set; } = 10.0f;
 
+        // State properties
         public bool CanUndo => undoStack.Count > 0;
-
         public int GridWidth => gridWidth;
         public int GridHeight => gridHeight;
 
+        /// <summary>
+        /// Initializes a new instance of the PixelCanvas with specified dimensions
+        /// </summary>
         public PixelCanvas(int width, int height)
         {
             gridWidth = width;
@@ -109,6 +133,9 @@ namespace RetroPalette
             this.MouseWheel += PixelCanvas_MouseWheel;
         }
 
+        /// <summary>
+        /// Handles mouse wheel events for zooming the canvas
+        /// </summary>
         private void PixelCanvas_MouseWheel(object sender, MouseEventArgs e)
         {
             float oldZoom = zoom;
@@ -136,6 +163,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Checks if the canvas contains any non-empty pixels
+        /// </summary>
         public bool HasContent()
         {
             for (int x = 0; x < gridWidth; x++)
@@ -151,6 +181,9 @@ namespace RetroPalette
             return false;
         }
 
+        /// <summary>
+        /// Clears all pixels from the canvas
+        /// </summary>
         public void Clear()
         {
             for (int x = 0; x < gridWidth; x++)
@@ -163,6 +196,9 @@ namespace RetroPalette
             Invalidate();
         }
 
+        /// <summary>
+        /// Gets the color of a pixel at the specified screen coordinates
+        /// </summary>
         public Color GetPixelColor(Point location)
         {
             var gridCoords = ScreenToGrid(location);
@@ -174,6 +210,9 @@ namespace RetroPalette
             return Color.Empty;
         }
 
+        /// <summary>
+        /// Performs a flood fill operation starting from the specified location
+        /// </summary>
         public void FloodFill(Point location, Color targetColor)
         {
             var gridCoords = ScreenToGrid(location);
@@ -216,6 +255,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Converts screen coordinates to grid coordinates
+        /// </summary>
         public Point ScreenToGrid(Point screenPoint)
         {
             int cellSize = (int)(Math.Min(Width / gridWidth, Height / gridHeight) * zoom);
@@ -228,6 +270,9 @@ namespace RetroPalette
             );
         }
 
+        /// <summary>
+        /// Loads an image file into the canvas, scaling if necessary
+        /// </summary>
         public void LoadImage(string filePath)
         {
             int originalWidth;
@@ -298,6 +343,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Exports the canvas content to an image file with specified scale
+        /// </summary>
         public void ExportImage(string filePath, int scale)
         {
             using (Bitmap bmp = new Bitmap(gridWidth * scale, gridHeight * scale))
@@ -325,6 +373,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the painting of the canvas and all its components
+        /// </summary>
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -428,6 +479,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Draws a pixel at the specified location with the given color
+        /// </summary>
         public void DrawPixel(Point location, Color color)
         {
             var gridCoords = ScreenToGrid(location);
@@ -448,6 +502,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Pans the canvas view by the specified delta
+        /// </summary>
         public void Pan(int deltaX, int deltaY)
         {
             viewOffset.X += deltaX;
@@ -455,6 +512,9 @@ namespace RetroPalette
             Invalidate();
         }
 
+        /// <summary>
+        /// Undoes the last action performed on the canvas
+        /// </summary>
         public void Undo()
         {
             if (CanUndo)
@@ -465,6 +525,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Adds an action to the undo stack
+        /// </summary>
         private void AddUndoAction(IUndoAction action)
         {
             if (undoStack.Count >= MAX_UNDO)
@@ -484,11 +547,17 @@ namespace RetroPalette
             undoStack.Push(action);
         }
 
+        /// <summary>
+        /// Begins a new interaction group for undo purposes
+        /// </summary>
         public void BeginInteraction()
         {
             currentGroupedAction = new List<SinglePixelUndoAction>();
         }
 
+        /// <summary>
+        /// Ends the current interaction group
+        /// </summary>
         public void EndInteraction()
         {
             if (currentGroupedAction != null && currentGroupedAction.Count > 0)
@@ -498,6 +567,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Starts a new marquee selection at the specified location
+        /// </summary>
         public void StartMarqueeSelection(Point location)
         {
             var gridCoords = ScreenToGrid(location);
@@ -512,6 +584,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Updates the marquee selection based on the current mouse location
+        /// </summary>
         public void UpdateMarqueeSelection(Point location)
         {
             var gridCoords = ScreenToGrid(location);
@@ -523,6 +598,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Finalizes the current marquee selection
+        /// </summary>
         public void EndMarqueeSelection()
         {
             if (selectionRect.HasValue)
@@ -542,6 +620,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Starts dragging the current selection
+        /// </summary>
         public void StartDraggingSelection(Point location)
         {
             var gridCoords = ScreenToGrid(location);
@@ -568,6 +649,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Updates the position of the dragged selection
+        /// </summary>
         public void DragSelection(Point location)
         {
             if (isDraggingSelection && dragStart.HasValue && selectionRect.HasValue)
@@ -614,6 +698,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Ends the current selection drag operation
+        /// </summary>
         public void EndDraggingSelection()
         {
             if (isDraggingSelection)
@@ -645,6 +732,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Deletes the currently selected pixels
+        /// </summary>
         public void DeleteSelection()
         {
             if (selectionRect.HasValue && selectedPixels.Count > 0)
@@ -670,6 +760,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Clears the current selection
+        /// </summary>
         public void ClearSelection()
         {
             selectionStart = null;
@@ -681,6 +774,9 @@ namespace RetroPalette
             Invalidate();
         }
 
+        /// <summary>
+        /// Updates the selection rectangle based on start and end points
+        /// </summary>
         private void UpdateSelectionRect()
         {
             if (selectionStart.HasValue && selectionEnd.HasValue)
@@ -697,16 +793,25 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Checks if a point is within the current selection
+        /// </summary>
         public bool IsPointInSelection(Point point)
         {
             return selectionRect.HasValue && selectionRect.Value.Contains(point);
         }
 
+        /// <summary>
+        /// Validates if a point is within the canvas bounds
+        /// </summary>
         private bool IsValidGridCoordinate(Point point)
         {
             return point.X >= 0 && point.X < gridWidth && point.Y >= 0 && point.Y < gridHeight;
         }
 
+        /// <summary>
+        /// Copies the current selection to the clipboard
+        /// </summary>
         public void CopySelection()
         {
             if (HasSelection && selectedPixels.Count > 0)
@@ -726,6 +831,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Pastes the clipboard content at the specified location
+        /// </summary>
         public void PasteFromClipboard(Point targetLocation)
         {
             if (clipboardPixels != null && clipboardPixels.Count > 0)
@@ -767,6 +875,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Applies the current selection to the canvas
+        /// </summary>
         public void ApplySelection()
         {
             if (HasSelection && selectedPixels.Count > 0)
@@ -791,6 +902,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Resizes the canvas to new dimensions
+        /// </summary>
         public void ResizeCanvas(int newWidth, int newHeight)
         {
             if (newWidth <= 0 || newHeight <= 0)
@@ -823,6 +937,9 @@ namespace RetroPalette
             Invalidate();
         }
 
+        /// <summary>
+        /// Resizes the sprite while maintaining aspect ratio
+        /// </summary>
         public void ResizeSprite(int newWidth, int newHeight)
         {
             if (newWidth <= 0 || newHeight <= 0)

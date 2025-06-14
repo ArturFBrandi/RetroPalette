@@ -9,35 +9,55 @@ using System.Runtime.InteropServices;
 
 namespace RetroPalette
 {
+    /// <summary>
+    /// A custom color selector control that provides HSV color picking functionality with alpha channel support.
+    /// This control includes a saturation/value box, hue slider, alpha slider, and a customizable color palette.
+    /// </summary>
     public class ColorSelector : Panel
     {
+        // Current selected color and palette storage
         private Color currentColor = Color.Black;
         private List<Color> palette = new List<Color>();
+
+        // Mouse interaction state tracking
         private bool isDraggingSV = false;
         private bool isDraggingHue = false;
         private bool isDraggingAlpha = false;
+
+        // Control bounds for different components
         private Rectangle svBoxBounds;
         private Rectangle hueSliderBounds;
         private Rectangle alphaSliderBounds;
         private Rectangle paletteAreaBounds;
         private Rectangle loadPaletteButtonBounds;
+
+        // Constants for UI layout
         private const int PALETTE_CELL_SIZE = 20;
         private const int PALETTE_COLS = 8;
         private const int SLIDER_HEIGHT = 20;
         private const int MARKER_SIZE = 10;
         private const int BUTTON_HEIGHT = 30;
 
-        private float hue = 0f;        // 0-360
-        private float saturation = 1f; // 0-1
-        private float value = 1f;      // 0-1
-        private int alpha = 255;       // 0-255
+        // HSV color components
+        private float hue = 0f;        // 0-360 degrees
+        private float saturation = 1f; // 0-1 range
+        private float value = 1f;      // 0-1 range
+        private int alpha = 255;       // 0-255 range
+
+        // UI marker positions
         private Point svMarker;
         private int hueMarkerX;
         private int alphaMarkerX;
 
+        /// <summary>
+        /// Event triggered when the selected color changes
+        /// </summary>
         [Browsable(false)]
         public event EventHandler<Color> ColorChanged;
 
+        /// <summary>
+        /// Gets or sets the currently selected color
+        /// </summary>
         [Browsable(true)]
         [Category("Appearance")]
         [Description("Gets or sets the current color")]
@@ -57,6 +77,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Initializes a new instance of the ColorSelector control
+        /// </summary>
         public ColorSelector()
         {
             this.DoubleBuffered = true;
@@ -84,6 +107,9 @@ namespace RetroPalette
             };
         }
 
+        /// <summary>
+        /// Handles the control's size change event and ensures minimum height requirements are met
+        /// </summary>
         protected override void OnSizeChanged(EventArgs e)
         {
             base.OnSizeChanged(e);
@@ -95,6 +121,10 @@ namespace RetroPalette
             Invalidate();
         }
 
+        /// <summary>
+        /// Calculates the minimum required height for the control based on its components
+        /// </summary>
+        /// <returns>The minimum height in pixels needed to display all components</returns>
         private int CalculateRequiredHeight()
         {
             int padding = 10;
@@ -111,6 +141,10 @@ namespace RetroPalette
             return fixedControlsHeight + paletteHeight + padding;
         }
 
+        /// <summary>
+        /// Updates HSV and alpha values from a given Color object
+        /// </summary>
+        /// <param name="color">The color to extract HSV values from</param>
         private void UpdateHSVFromColor(Color color)
         {
             alpha = color.A;
@@ -151,6 +185,9 @@ namespace RetroPalette
             UpdateMarkerPositions();
         }
 
+        /// <summary>
+        /// Updates the positions of all markers based on current HSV values
+        /// </summary>
         private void UpdateMarkerPositions()
         {
             if (svBoxBounds.Width == 0 || svBoxBounds.Height == 0 || 
@@ -179,6 +216,9 @@ namespace RetroPalette
             alphaMarkerX = Math.Max(alphaSliderBounds.Left, Math.Min(alphaMarkerX, alphaSliderBounds.Right - 1));
         }
 
+        /// <summary>
+        /// Handles the painting of the control and all its components
+        /// </summary>
         protected override void OnPaint(PaintEventArgs e)
         {
             base.OnPaint(e);
@@ -279,11 +319,17 @@ namespace RetroPalette
             DrawHorizontalMarker(g, alphaMarkerX, alphaSliderBounds.Top);
         }
 
+        /// <summary>
+        /// Compares two colors for equality, ignoring alpha channel
+        /// </summary>
         private bool ColorsMatch(Color c1, Color c2)
         {
             return c1.R == c2.R && c1.G == c2.G && c1.B == c2.B && c1.A == c2.A;
         }
 
+        /// <summary>
+        /// Draws the saturation/value color box
+        /// </summary>
         private void DrawSVBox(Graphics g, Rectangle bounds)
         {
             using (Bitmap bmp = new Bitmap(bounds.Width, bounds.Height))
@@ -309,6 +355,9 @@ namespace RetroPalette
             g.DrawRectangle(Pens.Black, bounds);
         }
 
+        /// <summary>
+        /// Draws the hue slider with color gradient
+        /// </summary>
         private void DrawHueSlider(Graphics g, Rectangle bounds)
         {
             using (Bitmap bmp = new Bitmap(bounds.Width, bounds.Height))
@@ -330,6 +379,9 @@ namespace RetroPalette
             g.DrawRectangle(Pens.Black, bounds);
         }
 
+        /// <summary>
+        /// Draws the alpha slider with transparency gradient
+        /// </summary>
         private void DrawAlphaSlider(Graphics g, Rectangle bounds)
         {
             using (Bitmap bmp = new Bitmap(bounds.Width, bounds.Height))
@@ -351,12 +403,18 @@ namespace RetroPalette
             g.DrawRectangle(Pens.Black, bounds);
         }
 
+        /// <summary>
+        /// Draws a circular marker at the specified center point
+        /// </summary>
         private void DrawMarker(Graphics g, Point center)
         {
             g.DrawEllipse(Pens.White, center.X - MARKER_SIZE/2, center.Y - MARKER_SIZE/2, MARKER_SIZE, MARKER_SIZE);
             g.DrawEllipse(Pens.Black, center.X - MARKER_SIZE/2 - 1, center.Y - MARKER_SIZE/2 - 1, MARKER_SIZE + 2, MARKER_SIZE + 2);
         }
 
+        /// <summary>
+        /// Draws a horizontal marker for sliders
+        /// </summary>
         private void DrawHorizontalMarker(Graphics g, int x, int y)
         {
             Point[] points = new Point[]
@@ -369,6 +427,9 @@ namespace RetroPalette
             g.DrawPolygon(Pens.Black, points);
         }
 
+        /// <summary>
+        /// Handles mouse down events for color selection and interaction
+        /// </summary>
         private void ColorSelector_MouseDown(object sender, MouseEventArgs e)
         {
             if (svBoxBounds.Contains(e.Location))
@@ -413,6 +474,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles mouse movement for dragging operations
+        /// </summary>
         private void ColorSelector_MouseMove(object sender, MouseEventArgs e)
         {
             if (isDraggingSV && svBoxBounds.Contains(e.Location))
@@ -429,6 +493,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles mouse up events to end dragging operations
+        /// </summary>
         private void ColorSelector_MouseUp(object sender, MouseEventArgs e)
         {
             isDraggingSV = false;
@@ -436,6 +503,9 @@ namespace RetroPalette
             isDraggingAlpha = false;
         }
 
+        /// <summary>
+        /// Updates saturation and value based on mouse position in the SV box
+        /// </summary>
         private void UpdateSVFromMouse(Point location)
         {
             saturation = Math.Clamp((location.X - svBoxBounds.Left) / (float)svBoxBounds.Width, 0, 1);
@@ -444,6 +514,9 @@ namespace RetroPalette
             UpdateCurrentColor();
         }
 
+        /// <summary>
+        /// Updates hue value based on mouse position in the hue slider
+        /// </summary>
         private void UpdateHueFromMouse(Point location)
         {
             hue = Math.Clamp((location.X - hueSliderBounds.Left) / (float)hueSliderBounds.Width * 360f, 0, 360);
@@ -451,6 +524,9 @@ namespace RetroPalette
             UpdateCurrentColor();
         }
 
+        /// <summary>
+        /// Updates alpha value based on mouse position in the alpha slider
+        /// </summary>
         private void UpdateAlphaFromMouse(Point location)
         {
             alpha = (int)Math.Clamp((location.X - alphaSliderBounds.Left) / (float)alphaSliderBounds.Width * 255f, 0, 255);
@@ -458,6 +534,9 @@ namespace RetroPalette
             UpdateCurrentColor();
         }
 
+        /// <summary>
+        /// Updates the current color based on HSV and alpha values
+        /// </summary>
         private void UpdateCurrentColor()
         {
             currentColor = HSVToRGB(hue, saturation, value, alpha);
@@ -465,6 +544,9 @@ namespace RetroPalette
             Invalidate();
         }
 
+        /// <summary>
+        /// Converts HSV color values to RGB Color object
+        /// </summary>
         private static Color HSVToRGB(float hue, float saturation, float value, int alpha)
         {
             int hi = (int)Math.Floor(hue / 60) % 6;
@@ -490,6 +572,9 @@ namespace RetroPalette
                 return Color.FromArgb(alpha, v, p, q);
         }
 
+        /// <summary>
+        /// Loads a color palette from a file
+        /// </summary>
         private void LoadPaletteFromFile()
         {
             using (OpenFileDialog openFileDialog = new OpenFileDialog())
@@ -523,6 +608,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Reads color palette from an Aseprite file
+        /// </summary>
         private List<Color> ReadPaletteFromAseprite(string filePath)
         {
             List<Color> colors = new List<Color>();

@@ -5,26 +5,41 @@ using System.IO;
 
 namespace RetroPalette
 {
+    /// <summary>
+    /// Main form of the RetroPalette application, providing the user interface for pixel art creation and editing.
+    /// Manages the canvas, tools, color selection, and various menus for file operations and preferences.
+    /// </summary>
     public partial class Form1 : Form
     {
+        // Core components
         private PixelCanvas canvas;
+        private ColorSelector colorSelector;
+        private Panel toolPanel;
+
+        // Mouse interaction state
         private bool isMiddleMouseDown = false;
         private Point lastMousePosition;
+
+        // Tool state
         private Tool currentTool = Tool.Pen;
-        private Panel toolPanel;
+        private Tool previousTool;
+        private bool isAltPressed = false;
+
+        // Menu management
         private Form fileMenu = null;
         private Form spriteMenu = null;
         private Form preferencesMenu = null;
         private bool isClosingFileMenu = false;
         private bool isClosingSpriteMenu = false;
         private bool isClosingPreferencesMenu = false;
-        private ColorSelector colorSelector;
-        private bool isAltPressed = false;
-        private Tool previousTool;
 
+        /// <summary>
+        /// Initializes a new instance of the main form
+        /// </summary>
         public Form1()
         {
             InitializeComponent();
+            this.Text = "RetroPalette";
             InitializeCanvas();
             InitializeUI();
 
@@ -34,6 +49,9 @@ namespace RetroPalette
             this.KeyUp += Form1_KeyUp;
         }
 
+        /// <summary>
+        /// Initializes the pixel canvas with default settings
+        /// </summary>
         private void InitializeCanvas()
         {
             canvas = new PixelCanvas(16, 16);
@@ -53,6 +71,9 @@ namespace RetroPalette
             this.Controls.Add(canvasContainer);
         }
 
+        /// <summary>
+        /// Initializes the user interface components including menus, tool panel, and color selector
+        /// </summary>
         private void InitializeUI()
         {
             // Create top menu panel
@@ -187,6 +208,9 @@ namespace RetroPalette
             this.Controls.Add(topMenu);
         }
 
+        /// <summary>
+        /// Closes the file menu if it's open
+        /// </summary>
         private void CloseFileMenu()
         {
             if (fileMenu != null && !fileMenu.IsDisposed)
@@ -199,6 +223,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Closes the sprite menu if it's open
+        /// </summary>
         private void CloseSpriteMenu()
         {
             if (spriteMenu != null && !spriteMenu.IsDisposed)
@@ -211,6 +238,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Closes the preferences menu if it's open
+        /// </summary>
         private void ClosePreferencesMenu()
         {
             if (preferencesMenu != null && !preferencesMenu.IsDisposed)
@@ -223,6 +253,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the file button click event, showing or hiding the file menu
+        /// </summary>
         private void FileButton_Click(object sender, EventArgs e)
         {
             if (fileMenu != null && !fileMenu.IsDisposed)
@@ -282,6 +315,9 @@ namespace RetroPalette
             fileMenu.Show();
         }
 
+        /// <summary>
+        /// Handles the new sprite button click event, creating a new sprite with specified dimensions
+        /// </summary>
         private void NewSprite_Click(object sender, EventArgs e)
         {
             try
@@ -320,6 +356,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the open sprite button click event, loading an existing sprite file
+        /// </summary>
         private void OpenSprite_Click(object sender, EventArgs e)
         {
             try
@@ -350,6 +389,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the export sprite button click event, saving the current sprite to a file
+        /// </summary>
         private void ExportSprite_Click(object sender, EventArgs e)
         {
             try
@@ -410,6 +452,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the sprite button click event, showing or hiding the sprite menu
+        /// </summary>
         private void SpriteButton_Click(object sender, EventArgs e)
         {
             if (spriteMenu != null && !spriteMenu.IsDisposed)
@@ -469,6 +514,10 @@ namespace RetroPalette
             spriteMenu.Show(this);
         }
 
+        /// <summary>
+        /// Shows a dialog for resizing either the canvas or the sprite
+        /// </summary>
+        /// <param name="isCanvas">True if resizing canvas, false if resizing sprite</param>
         private void ShowResizeDialog(bool isCanvas)
         {
             using (Form resizeForm = new Form())
@@ -565,11 +614,17 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the form resize event, adjusting the layout of components
+        /// </summary>
         private void Form1_Resize(object sender, EventArgs e)
         {
             canvas.Invalidate();
         }
 
+        /// <summary>
+        /// Handles mouse down events on the canvas, initiating drawing or tool operations
+        /// </summary>
         private void Canvas_MouseDown(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Middle)
@@ -616,6 +671,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles mouse move events on the canvas, updating drawing or tool operations
+        /// </summary>
         private void Canvas_MouseMove(object sender, MouseEventArgs e)
         {
             if (isMiddleMouseDown)
@@ -653,6 +711,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles mouse up events on the canvas, finalizing drawing or tool operations
+        /// </summary>
         private void Canvas_MouseUp(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Middle)
@@ -679,6 +740,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles key down events, implementing keyboard shortcuts and tool modifiers
+        /// </summary>
         private void Form1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.Alt && !isAltPressed)
@@ -752,6 +816,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles key up events, resetting tool modifiers
+        /// </summary>
         private void Form1_KeyUp(object sender, KeyEventArgs e)
         {
             if (!e.Alt && isAltPressed) // Changed condition to check !e.Alt
@@ -763,6 +830,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles form deactivation, closing any open menus
+        /// </summary>
         protected override void OnDeactivate(EventArgs e)
         {
             base.OnDeactivate(e);
@@ -775,6 +845,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Updates the visual state of tool buttons to reflect the current tool selection
+        /// </summary>
         private void UpdateToolButtonStates()
         {
             foreach (Control control in toolPanel.Controls)
@@ -788,6 +861,9 @@ namespace RetroPalette
             }
         }
 
+        /// <summary>
+        /// Handles the preferences button click event, showing or hiding the preferences menu
+        /// </summary>
         private void PreferencesButton_Click(object sender, EventArgs e)
         {
             if (preferencesMenu != null && !preferencesMenu.IsDisposed)
@@ -834,6 +910,9 @@ namespace RetroPalette
             preferencesMenu.Show(this);
         }
 
+        /// <summary>
+        /// Shows a dialog for configuring the background pattern
+        /// </summary>
         private void ShowBackgroundPatternDialog()
         {
             using (Form patternForm = new Form())
@@ -1020,12 +1099,15 @@ namespace RetroPalette
         }
     }
 
+    /// <summary>
+    /// Enumeration of available drawing tools
+    /// </summary>
     public enum Tool
     {
-        Pen,
-        Eraser,
-        Bucket,
-        ColorPicker,
-        Marquee
+        Pen,        // Basic pixel drawing tool
+        Eraser,     // Tool for removing pixels
+        Bucket,     // Flood fill tool
+        ColorPicker,// Tool for selecting colors from the canvas
+        Marquee     // Selection tool for moving or copying pixel regions
     }
 }
