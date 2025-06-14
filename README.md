@@ -24,7 +24,7 @@ RetroPalette is a modern pixel art editor designed for creating and editing retr
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/RetroPalette.git
+git clone https://github.com/ArturFBrandi/RetroPalette.git
 cd RetroPalette
 ```
 
