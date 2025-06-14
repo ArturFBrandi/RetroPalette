@@ -39,7 +39,7 @@ cd RetroPalette
 
 2. Clone the repository and open the solution:
 ```bash
-git clone https://github.com/yourusername/RetroPalette.git
+git clone https://github.com/ArturFBrandi/RetroPalette.git
 cd RetroPalette
 ```
 
@@ -100,7 +100,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Support
 
 If you encounter any issues or have questions:
-1. Check the [Issues](https://github.com/yourusername/RetroPalette/issues) page
+1. Check the [Issues](https://github.com/ArturFBrandi/RetroPalette/issues) page
 2. Create a new issue if your problem hasn't been reported
 3. Join our community discussions
 
