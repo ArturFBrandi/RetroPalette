@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("RetroPalette")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+10bdda375f5f231196818e7f1e7bdc17bb1df657")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+21480b516d1d8abf427cdf8be90e43e3a0febb17")]
 [assembly: System.Reflection.AssemblyProductAttribute("RetroPalette")]
 [assembly: System.Reflection.AssemblyTitleAttribute("RetroPalette")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
